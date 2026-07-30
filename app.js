@@ -700,21 +700,20 @@
     return state.files.base.rows.map(r => {
       const copy = Object.assign({}, r);
       const eanKey = Core.toStr(r[eanCol]);
+      // Resolve o valor efetivo (o que foi digitado pra preencher um branco,
+      // ou o valor original do arquivo) e SO DEPOIS aplica o mapa de renomeacoes -
+      // assim, se o grupo criado por uma correcao de branco for renomeado de
+      // novo mais tarde (ex.: "mop" -> "MOP"), essa segunda correcao tambem
+      // e' aplicada, em vez de ficar presa na primeira digitacao.
       if (col1) {
-        if (state.blankFixes.nivel1[eanKey] !== undefined) {
-          copy[col1] = state.blankFixes.nivel1[eanKey];
-        } else {
-          const key = Core.normalizeExact(copy[col1]);
-          if (map1.has(key)) copy[col1] = map1.get(key);
-        }
+        const effective = state.blankFixes.nivel1[eanKey] !== undefined ? state.blankFixes.nivel1[eanKey] : copy[col1];
+        const key = Core.normalizeExact(effective);
+        copy[col1] = map1.has(key) ? map1.get(key) : effective;
       }
       if (col2) {
-        if (state.blankFixes.nivel2[eanKey] !== undefined) {
-          copy[col2] = state.blankFixes.nivel2[eanKey];
-        } else {
-          const key = Core.normalizeExact(copy[col2]);
-          if (map2.has(key)) copy[col2] = map2.get(key);
-        }
+        const effective = state.blankFixes.nivel2[eanKey] !== undefined ? state.blankFixes.nivel2[eanKey] : copy[col2];
+        const key = Core.normalizeExact(effective);
+        copy[col2] = map2.has(key) ? map2.get(key) : effective;
       }
       return copy;
     });

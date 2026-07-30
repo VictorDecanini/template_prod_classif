@@ -87,6 +87,13 @@ corrigir manualmente também, então a detecção errada nunca trava o uso.
 
 ## Changelog
 
+- **Correção de bug importante no arquivo exportado**: quando um item em
+  branco era classificado (Passo 3.0) e, na sequência, o grupo criado por
+  essa classificação era renomeado de novo (ex.: corrigir um typo criado na
+  hora), o arquivo final ainda saía com a primeira digitação, ignorando a
+  correção seguinte. Agora o arquivo exportado sempre reflete a versão mais
+  recente da Prod, não importa quantas vezes ela tenha sido corrigida.
+
 - **Consolidação por Nome Final**: quando uma linha é corrigida para um nome
   que já existe em outra linha (ex.: corrigir um typo pra uma prod que já
   tem 800+ SKUs), ela continua aparecendo separada na tabela (pra
@@ -219,6 +226,9 @@ DOM simulado (jsdom) com dados sintéticos:
 - `smoke11_consolidation.js` — corrigir um Nome Final para bater com uma prod
   que já existe consolida os números (SKUs, Importância, Status) em vez de
   julgar aquela linha sozinha, e a tela atualiza ao vivo conforme se digita.
+- `smoke12_reclassification_chain.js` — item em branco classificado errado e
+  corrigido depois (inclusive mais de uma vez): o arquivo exportado sempre
+  usa a versão mais recente, nunca a primeira digitação.
 
 ```
 npm install

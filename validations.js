@@ -236,8 +236,6 @@ const Validations = (function () {
 
     // contagem total de "achados" para o KPI de topo
     let totalAchados = 0;
-    totalAchados += results.eanCross.onlyInBase.length;
-    totalAchados += results.eanCross.onlyInClassif.length;
     totalAchados += results.eanCross.duplicatesInBase.length;
     totalAchados += results.categoria.trocaramCategoria.length;
     totalAchados += results.blankNivel1.length + results.blankNivel2.length;

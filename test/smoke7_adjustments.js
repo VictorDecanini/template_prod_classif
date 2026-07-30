@@ -153,6 +153,12 @@ async function main() {
   log('Grid tem só 2 cards lado a lado (PDF e E-mail)', doc.querySelectorAll('.report-grid .report-card').length === 2, doc.querySelectorAll('.report-grid .report-card').length);
   log('Base corrigida está FORA do grid, como seção separada', $('#corrected-base-card') && !$('.report-grid').contains($('#corrected-base-card')));
   log('Existe uma divisória antes da seção de base corrigida', $('.report-divider') !== null);
+  log('Título novo da seção de base corrigida',
+    $('#corrected-base-card').textContent.includes('Base corrigida para subir prod no classificaciones'));
+  log('Instrução de 3 passos aparece (baixar -> conferir -> subir)',
+    $('#corrected-base-card').textContent.includes('Baixe a base') &&
+    $('#corrected-base-card').textContent.includes('confira se todos os ajustes de Prod foram realizados') &&
+    $('#corrected-base-card').textContent.includes('suba no classificaciones novamente'));
 
   const lockedPill = doc.querySelector('#email-tags .tag-pill.is-locked');
   log('Pill fixo do e-mail aparece com o endereco certo', lockedPill && lockedPill.textContent.includes('Scannmarket-br@scanntech.com'));

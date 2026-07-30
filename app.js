@@ -742,11 +742,11 @@
         v.blankNivel2, skuLabel, Core.RECOMENDACOES.blankNivel);
     }
     addCheck(area, 'SKUs na base congelada não encontrados no classificaciones',
-      'SKUs que já têm uma classificação na base congelada desta rodada, mas que não aparecem em nenhuma linha do report Classificaciones para a categoria filtrada. Normalmente indica que a classificação ainda não foi processada no sistema, ou que o SKU foi descontinuado.',
-      v.eanCross.onlyInBase, skuLabel, Core.RECOMENDACOES.onlyInBase);
+      'SKUs que já têm uma classificação na base congelada desta rodada, mas que não aparecem em nenhuma linha do report Classificaciones para a categoria filtrada. É esperado que isso aconteça às vezes (SKU descontinuado, ou classificação ainda não processada) — vale a pena olhar o volume de cada um pra saber se merece atenção.',
+      v.eanCross.onlyInBase, skuLabel, Core.RECOMENDACOES.onlyInBase, 'warning');
     addCheck(area, 'SKUs no classificaciones não encontrados na base congelada',
-      'SKUs que já existem classificados no Classificaciones para essa categoria, mas que não vieram na base congelada enviada nesta rodada.',
-      v.eanCross.onlyInClassif, d => d.codigoBarras + (d.descricao ? ' — ' + d.descricao : ''), Core.RECOMENDACOES.onlyInClassif);
+      'SKUs que já existem classificados no Classificaciones para essa categoria, mas que não vieram na base congelada enviada nesta rodada. Também é uma situação comum — não significa necessariamente um problema.',
+      v.eanCross.onlyInClassif, d => d.codigoBarras + (d.descricao ? ' — ' + d.descricao : ''), Core.RECOMENDACOES.onlyInClassif, 'warning');
     addCheck(area, 'EAN duplicado dentro da base congelada',
       'O mesmo EAN aparece em mais de uma linha da base congelada enviada — isso pode fazer a venda desse produto ser contada em dobro no cálculo de Importância.',
       v.eanCross.duplicatesInBase, d => skuLabel(d) + '  (' + d.count + ' linhas)', Core.RECOMENDACOES.duplicatesInBase);
@@ -791,11 +791,11 @@
       v.nearDupNivel2, p => '"' + p.a + '"  vs  "' + p.b + '"  (distância ' + p.dist + ')', Core.RECOMENDACOES.nearDup);
   }
 
-  function addCheck(container, title, desc, items, formatter, recommendation) {
+  function addCheck(container, title, desc, items, formatter, recommendation, severity) {
     const card = document.createElement('div');
     card.className = 'check-card';
     const count = items ? items.length : 0;
-    const badgeClass = count === 0 ? 'badge-green' : 'badge-red';
+    const badgeClass = count === 0 ? 'badge-green' : (severity === 'warning' ? 'badge-amber' : 'badge-red');
     const badgeText = count === 0 ? 'OK' : count + (count === 1 ? ' item' : ' itens');
 
     const head = document.createElement('div');
@@ -925,8 +925,9 @@
     section.className = 'corrected-base-section';
     section.id = 'corrected-base-card';
     section.innerHTML = '<div class="corrected-base-info"><i class="ti ti-file-check"></i><div>' +
-      '<strong>Base corrigida para subir prods no classificaciones</strong>' +
-      '<span id="corrected-base-desc">Mesma estrutura do arquivo que você subiu, com os nomes corrigidos no Passo 3 já aplicados.</span>' +
+      '<strong>Base corrigida para subir prod no classificaciones</strong>' +
+      '<span class="corrected-base-flow">Baixe a base&nbsp;→&nbsp;confira se todos os ajustes de Prod foram realizados&nbsp;→&nbsp;suba no classificaciones novamente.</span>' +
+      '<span id="corrected-base-desc"></span>' +
       '</div></div>';
     const btn = document.createElement('button');
     btn.className = 'btn btn-secondary';
@@ -945,8 +946,8 @@
     if (!desc) return;
     const { total } = buildCorrections();
     desc.textContent = total === 0
-      ? 'Nenhuma correção feita no Passo 3 — o arquivo seria baixado igual ao original.'
-      : total + ' correção(ões) do Passo 3 aplicadas. Mesma estrutura do arquivo original.';
+      ? 'Nenhuma correção feita no Passo 3 — mesma estrutura do arquivo original.'
+      : total + ' correção(ões) do Passo 3 já aplicadas — mesma estrutura do arquivo original.';
   }
 
   // ==================================================================

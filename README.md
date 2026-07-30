@@ -87,6 +87,13 @@ corrigir manualmente também, então a detecção errada nunca trava o uso.
 
 ## Changelog
 
+- **Duas checagens não contam mais como "problema"** — "SKU só numa base" e
+  "SKU só na outra" continuam aparecendo como alerta amarelo, mas não somam
+  mais no contador de achados do topo do dashboard, já que são situações
+  comuns e esperadas.
+- **Instrução clara no download da base corrigida** — título e um resumo do
+  fluxo (baixar → conferir os ajustes → subir de novo no sistema de
+  classificação) ficam explícitos na seção do Passo 5.
 - **Dois cards viraram alerta (amarelo), não mais erro (vermelho)** — "SKU só
   numa base" e "SKU só na outra" são situações comuns e esperadas, não
   necessariamente um problema. O texto de cada um foi suavizado pra refletir

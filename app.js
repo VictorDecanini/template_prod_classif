@@ -499,22 +499,57 @@
     table.innerHTML = '<thead><tr><th>Valor detectado</th><th>Nome Final - Editável</th><th>SKUs</th><th>Importância</th>' +
       '<th>Status<span class="th-sub">Revisar: abaixo de 4% · Atenção: 4%–5% · OK: 5% ou mais</span></th></tr></thead>';
     const tbody = document.createElement('tbody');
+    const consolidated = Validations.consolidateFinalGroups(groups);
+    const consolidatedByFinal = new Map(consolidated.map(c => [c.final, c]));
     groups.forEach((g, idx) => {
+      // Se o Nome Final bater com o de outra linha (ex.: typo corrigido pra
+      // uma prod que ja existe), os numeros mostrados sao os do grupo
+      // consolidado, nao os dessa linha isolada - a linha continua aparecendo
+      // pra rastreio, mas nao conta como "baixa relevancia" sozinha.
+      const c = consolidatedByFinal.get(Core.normalizeExact(g.final)) || g;
       const tr = document.createElement('tr');
-      if (g.status === 'red') tr.className = 'row-revisar';
-      const badgeClass = g.status === 'green' ? 'badge-green' : g.status === 'amber' ? 'badge-amber' : 'badge-red';
-      const badgeText = g.status === 'green' ? 'OK' : g.status === 'amber' ? 'Atenção' : 'Revisar';
+      if (c.status === 'red') tr.className = 'row-revisar';
+      const badgeClass = c.status === 'green' ? 'badge-green' : c.status === 'amber' ? 'badge-amber' : 'badge-red';
+      const badgeText = c.status === 'green' ? 'OK' : c.status === 'amber' ? 'Atenção' : 'Revisar';
       tr.innerHTML =
         '<td>' + escapeHtml(g.original) + '</td>' +
         '<td><input type="text" class="nome-final-input" data-idx="' + idx + '" data-store="' + storeKey + '" value="' + escapeAttr(g.final) + '"></td>' +
-        '<td>' + g.count.toLocaleString('pt-BR') + '</td>' +
-        '<td>' + g.pct.toFixed(2).replace('.', ',') + '%</td>' +
+        '<td>' + c.count.toLocaleString('pt-BR') + '</td>' +
+        '<td>' + c.pct.toFixed(2).replace('.', ',') + '%</td>' +
         '<td><span class="badge ' + badgeClass + '">' + badgeText + '</span></td>';
       tbody.appendChild(tr);
     });
     table.appendChild(tbody);
     wrap.appendChild(table);
     return wrap;
+  }
+
+  // Chamada a cada edicao de "Nome Final". So atualiza as celulas de
+  // SKUs/Importancia/Status (e a cor da linha) com os numeros consolidados -
+  // nao mexe nos inputs, entao quem esta digitando nao perde o foco/cursor.
+  function refreshConsolidatedDisplay() {
+    [
+      { storeKey: 'nivel1', groups: state.importanciaNivel1, blockId: 'importancia-nivel1-block' },
+      { storeKey: 'nivel2', groups: state.importanciaNivel2, blockId: 'importancia-nivel2-block' }
+    ].forEach(({ groups, blockId }) => {
+      if (!groups) return;
+      const block = document.getElementById(blockId);
+      if (!block) return;
+      const consolidated = Validations.consolidateFinalGroups(groups);
+      const byFinal = new Map(consolidated.map(c => [c.final, c]));
+      const rows = block.querySelectorAll('tbody tr');
+      groups.forEach((g, idx) => {
+        const tr = rows[idx];
+        if (!tr) return;
+        const c = byFinal.get(Core.normalizeExact(g.final)) || g;
+        const badgeClass = c.status === 'green' ? 'badge-green' : c.status === 'amber' ? 'badge-amber' : 'badge-red';
+        const badgeText = c.status === 'green' ? 'OK' : c.status === 'amber' ? 'Atenção' : 'Revisar';
+        tr.children[2].textContent = c.count.toLocaleString('pt-BR');
+        tr.children[3].textContent = c.pct.toFixed(2).replace('.', ',') + '%';
+        tr.children[4].innerHTML = '<span class="badge ' + badgeClass + '">' + badgeText + '</span>';
+        tr.classList.toggle('row-revisar', c.status === 'red');
+      });
+    });
   }
 
   function mergeFinalValues(newGroups, oldGroups) {
@@ -546,7 +581,7 @@
       state.importanciaNivel2 = null;
     }
 
-    area.addEventListener('input', () => { captureImportanciaEdits(); updateCorrectionsPreview(); });
+    area.addEventListener('input', () => { captureImportanciaEdits(); updateCorrectionsPreview(); refreshConsolidatedDisplay(); });
 
     const previewEl = document.createElement('div');
     previewEl.id = 'corrections-preview';

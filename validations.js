@@ -41,6 +41,31 @@ const Validations = (function () {
     });
   }
 
+  // Quando duas linhas "Valor detectado" diferentes acabam com o mesmo
+  // "Nome Final" (ex.: um typo corrigido pra bater com uma prod que ja'
+  // existe), elas devem contar JUNTAS pra fins de SKUs/Importancia/Status -
+  // a linha do typo continua aparecendo separada na tabela (pra rastrear o
+  // que foi corrigido), mas o numero que importa e' o do grupo consolidado.
+  function consolidateFinalGroups(groups) {
+    const total = (groups || []).reduce((s, g) => s + g.sumImp, 0);
+    const map = new Map();
+    (groups || []).forEach(g => {
+      const key = N(g.final);
+      if (key === '') return;
+      if (!map.has(key)) map.set(key, { final: key, count: 0, sumImp: 0 });
+      const c = map.get(key);
+      c.count += g.count;
+      c.sumImp += g.sumImp;
+    });
+    return Array.from(map.values()).map(c => {
+      const pct = total > 0 ? (c.sumImp / total) * 100 : 0;
+      let status = 'green';
+      if (pct < LIMIAR_ALERTA) status = 'red';
+      else if (pct < LIMIAR_OK) status = 'amber';
+      return Object.assign({}, c, { pct, status });
+    });
+  }
+
   // ---------- Prod (nivel1/nivel2) vs Classificaciones ----------
   // confirmedList: [{ original, final }]  (saida da etapa 3, ja com nome final confirmado)
   // classifValues: array de valores brutos encontrados na coluna correspondente do report
@@ -121,7 +146,7 @@ const Validations = (function () {
 
   // ---------- Prods com baixa relevancia (status "Revisar" da Etapa 3) ----------
   function lowRelevanceGroups(list) {
-    return (list || [])
+    return consolidateFinalGroups(list || [])
       .filter(g => g.status === 'red')
       .map(g => ({ nome: g.final, pct: g.pct, count: g.count }));
   }
@@ -286,7 +311,7 @@ const Validations = (function () {
 
   return {
     LIMIAR_OK, LIMIAR_ALERTA,
-    computeGroupStats, attachPctAndStatus,
+    computeGroupStats, attachPctAndStatus, consolidateFinalGroups,
     diffAgainstClassif, eanCrossCheck, categoriaChecks, blankNivelRows, blankNivelRowsCombined,
     caseVariants, caseVariantsWeighted, whitespaceIssues, nearDuplicates,
     compute

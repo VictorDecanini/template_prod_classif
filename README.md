@@ -87,6 +87,14 @@ corrigir manualmente também, então a detecção errada nunca trava o uso.
 
 ## Changelog
 
+- **Consolidação por Nome Final**: quando uma linha é corrigida para um nome
+  que já existe em outra linha (ex.: corrigir um typo pra uma prod que já
+  tem 800+ SKUs), ela continua aparecendo separada na tabela (pra
+  rastreabilidade), mas os números de SKUs/Importância/Status agora refletem
+  o grupo consolidado, não a fatia isolada — deixa de aparecer como "Revisar"
+  sozinha e sai da lista de baixa relevância. A atualização acontece ao vivo,
+  assim que o campo é editado.
+
 - **Refinamentos da checagem de baixa relevância**: agora é claramente um
   aviso amarelo, não um erro — não conta mais no total de achados, e o texto
   do card deixa explícito que dá pra seguir sem corrigir.
@@ -208,6 +216,9 @@ DOM simulado (jsdom) com dados sintéticos:
   relevância como aviso não-bloqueante e fora da contagem de achados,
   correção de maiúscula/minúscula reagindo ao Nome Final da Etapa 3, e o
   PDF enxuto (só problemas reais + contagem de aprovados).
+- `smoke11_consolidation.js` — corrigir um Nome Final para bater com uma prod
+  que já existe consolida os números (SKUs, Importância, Status) em vez de
+  julgar aquela linha sozinha, e a tela atualiza ao vivo conforme se digita.
 
 ```
 npm install

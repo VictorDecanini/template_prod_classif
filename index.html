@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prod &amp; Classificaciones — ScannMarket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">Scann<span class="brand-mark-accent">Market</span></span>
+    </div>
+    <h1 class="app-title">Validador de Prod &amp; Classificaciones</h1>
+  </div>
+</header>
+
+<nav class="stepper" id="stepper" aria-label="Etapas do processo">
+  <button class="step" data-step="1" type="button"><span class="step-num">1</span><span class="step-label">Parâmetros</span></button>
+  <button class="step" data-step="2" type="button"><span class="step-num">2</span><span class="step-label">Upload</span></button>
+  <button class="step" data-step="3" type="button"><span class="step-num">3</span><span class="step-label">Importância</span></button>
+  <button class="step" data-step="4" type="button"><span class="step-num">4</span><span class="step-label">Validação</span></button>
+  <button class="step" data-step="5" type="button"><span class="step-num">5</span><span class="step-label">Relatório</span></button>
+</nav>
+
+<main class="app-main">
+
+  <!-- STEP 1: PARÂMETROS -->
+  <section class="panel" id="panel-1" data-panel="1">
+    <div class="panel-head">
+      <h2>Parâmetros da solicitação</h2>
+      <p class="panel-sub">Essas informações vão identificar a solicitação e definir quais colunas do ScannMarket devem ser preenchidas.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label for="f-categoria">Categoria <span class="req">*</span></label>
+        <input type="text" id="f-categoria" placeholder="Ex: Bebidas">
+      </div>
+      <div class="field">
+        <label for="f-cliente">Cliente</label>
+        <input type="text" id="f-cliente" placeholder="Nome do cliente">
+      </div>
+      <div class="field">
+        <label for="f-bu">BU</label>
+        <input type="text" id="f-bu" placeholder="Unidade de negócio">
+      </div>
+      <div class="field">
+        <label for="f-status">Status cliente</label>
+        <select id="f-status">
+          <option value="">Selecione...</option>
+          <option>PILOTO</option>
+          <option>DEMO</option>
+          <option>FATURADO</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-versao">Versão SM</label>
+        <select id="f-versao">
+          <option value="2.0">2.0</option>
+          <option value="3.0">3.0</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Cliente receberá FTP?</label>
+        <div class="segmented" id="f-ftp" data-value="Não">
+          <button type="button" class="seg-btn" data-val="Sim">Sim</button>
+          <button type="button" class="seg-btn is-active" data-val="Não">Não</button>
+        </div>
+        <p class="field-hint">Necessidade de receber a base após a criação do dash, antes da produção regular.</p>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Região / UF</label>
+      <div class="tagselect" id="f-regiao-uf">
+        <div class="tagselect-input" tabindex="0" id="tagselect-trigger">
+          <div class="tagselect-tags" id="tagselect-tags"></div>
+          <input type="text" id="tagselect-search" placeholder="Buscar região ou UF...">
+        </div>
+        <div class="tagselect-menu" id="tagselect-menu" hidden></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Opção de classificação <span class="req">*</span></label>
+      <div class="option-cards" id="f-opcao">
+        <label class="option-card">
+          <input type="radio" name="opcao" value="Opção 1">
+          <div class="option-card-body">
+            <strong>Opção 1</strong>
+            <span>Nível 1 = Categoria ScannTech · Nível 2 = ScannMarket 1 ou 3</span>
+          </div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="opcao" value="Opção 2">
+          <div class="option-card-body">
+            <strong>Opção 2</strong>
+            <span>Nível 1 = ScannMarket 1 ou 3 · Nível 2 = ScannMarket 2 ou 4</span>
+          </div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="opcao" value="Opção 3">
+          <div class="option-card-body">
+            <strong>Opção 3</strong>
+            <span>Nível 1 = Categoria ScannTech · sem Nível 2</span>
+          </div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="opcao" value="Opção 4">
+          <div class="option-card-body">
+            <strong>Opção 4</strong>
+            <span>Nível 1 = ScannMarket 1 ou 3 · sem Nível 2</span>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="callout" id="f-deverapreencher">
+      Selecione uma opção para ver o que deverá ser preenchido no classificaciones.
+    </div>
+
+    <div class="panel-actions">
+      <span></span>
+      <button class="btn btn-primary" id="btn-to-step2" type="button">Continuar <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </section>
+
+  <!-- STEP 2: UPLOAD -->
+  <section class="panel" id="panel-2" data-panel="2" hidden>
+    <div class="panel-head">
+      <h2>Upload dos arquivos</h2>
+      <p class="panel-sub">Suba os dois arquivos abaixo. Aceita .csv (separado por ; ou ,) e .xlsx. Tudo é processado aqui no navegador — nenhum arquivo sai do seu computador.</p>
+    </div>
+
+    <div class="upload-grid">
+      <div class="upload-card" id="upload-base">
+        <div class="upload-card-head">
+          <i class="ti ti-database"></i>
+          <div>
+            <strong>Base congelada classificada</strong>
+            <span>EAN, ScannMarket, categorias e impVta24</span>
+          </div>
+        </div>
+        <label class="dropzone" for="file-base">
+          <input type="file" id="file-base" accept=".csv,.xlsx,.xls" hidden>
+          <i class="ti ti-upload"></i>
+          <span id="file-base-label">Clique ou arraste o arquivo aqui</span>
+        </label>
+        <div class="upload-status" id="status-base"></div>
+      </div>
+
+      <div class="upload-card" id="upload-classif">
+        <div class="upload-card-head">
+          <i class="ti ti-file-report"></i>
+          <div>
+            <strong>Report Classificaciones</strong>
+            <span>CODIGO_BARRAS, Scannmarket 1-4, Categoria</span>
+          </div>
+        </div>
+        <label class="dropzone" for="file-classif">
+          <input type="file" id="file-classif" accept=".csv,.xlsx,.xls" hidden>
+          <i class="ti ti-upload"></i>
+          <span id="file-classif-label">Clique ou arraste o arquivo aqui</span>
+        </label>
+        <div class="upload-status" id="status-classif"></div>
+      </div>
+    </div>
+
+    <div id="mapping-area"></div>
+
+    <div class="panel-actions">
+      <button class="btn btn-ghost" id="btn-to-step1" type="button"><i class="ti ti-arrow-left"></i> Voltar</button>
+      <button class="btn btn-primary" id="btn-to-step3" type="button" disabled>Continuar <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </section>
+
+  <!-- STEP 3: IMPORTÂNCIA -->
+  <section class="panel" id="panel-3" data-panel="3" hidden>
+    <div class="panel-head">
+      <h2>Confirmar Prods e Importância</h2>
+      <p class="panel-sub">Detectamos estes valores na base congelada e já calculamos a importância automaticamente a partir do impVta24. Ajuste o nome final se precisar corrigir alguma digitação — a correção pode ser baixada já aplicada no Passo 5. SKUs sem classificação também são apontados aqui, para irem direto pro time classificar.</p>
+    </div>
+
+    <div id="importancia-area"></div>
+
+    <div class="panel-actions">
+      <button class="btn btn-ghost" id="btn-to-step2b" type="button"><i class="ti ti-arrow-left"></i> Voltar</button>
+      <button class="btn btn-primary" id="btn-to-step4" type="button">Rodar validações <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </section>
+
+  <!-- STEP 4: VALIDAÇÃO -->
+  <section class="panel" id="panel-4" data-panel="4" hidden>
+    <div class="panel-head">
+      <h2>Dashboard de validação</h2>
+      <p class="panel-sub">Idealmente todas as seções abaixo aparecem verdes. Qualquer coisa em vermelho ou amarelo merece uma olhada antes de gerar o relatório.</p>
+    </div>
+
+    <div class="kpi-row" id="kpi-row"></div>
+    <div id="validation-area"></div>
+
+    <div class="panel-actions">
+      <button class="btn btn-ghost" id="btn-to-step3b" type="button"><i class="ti ti-arrow-left"></i> Voltar</button>
+      <button class="btn btn-primary" id="btn-to-step5" type="button">Ir para relatório <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </section>
+
+  <!-- STEP 5: RELATÓRIO -->
+  <section class="panel" id="panel-5" data-panel="5" hidden>
+    <div class="panel-head">
+      <h2>Relatório final</h2>
+      <p class="panel-sub">Gere o arquivo para validação e, se quiser, já deixe o e-mail pronto no Outlook.</p>
+    </div>
+
+    <div class="report-grid">
+      <div class="report-card">
+        <i class="ti ti-file-type-pdf"></i>
+        <strong>PDF enxuto</strong>
+        <span>Resumo de 1-2 páginas com parâmetros, importância e validação. Ideal para anexar no e-mail.</span>
+        <button class="btn btn-primary" id="btn-gen-pdf" type="button">Baixar PDF</button>
+      </div>
+      <div class="report-card">
+        <i class="ti ti-mail"></i>
+        <strong>E-mail</strong>
+        <span>Abre o Outlook com destinatário, assunto e corpo prontos. O anexo precisa ser adicionado manualmente.</span>
+        <div class="field" style="margin-bottom:8px">
+          <label style="font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:4px;display:block;">Destinatários</label>
+          <div class="tagselect" id="f-email-recipients">
+            <div class="tagselect-input" id="email-tags-trigger">
+              <div class="tagselect-tags" id="email-tags"></div>
+              <input type="text" id="email-tag-input" placeholder="adicionar outro e-mail e Enter...">
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-secondary" id="btn-gen-email" type="button">Preparar e-mail</button>
+      </div>
+    </div>
+
+    <div class="callout callout-info" id="report-reminder" hidden>
+      <i class="ti ti-info-circle"></i>
+      <span>E-mail aberto no seu cliente de e-mail padrão. Não esqueça de anexar o arquivo que você acabou de baixar — o navegador não anexa isso automaticamente por segurança.</span>
+    </div>
+
+    <div class="panel-actions">
+      <button class="btn btn-ghost" id="btn-to-step4b" type="button"><i class="ti ti-arrow-left"></i> Voltar</button>
+      <span></span>
+    </div>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  Processamento 100% local no navegador · Nenhum dado é enviado a servidores externos
+</footer>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="core.js"></script>
+<script src="validations.js"></script>
+<script src="report.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

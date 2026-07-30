@@ -1,0 +1,16 @@
+{
+  "name": "prod-classificacoes",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Validador de Prod & Classificaciones - ferramenta 100% client-side (HTML/JS) para substituir o template Excel.",
+  "scripts": {
+    "test": "node test/smoke.js && node test/smoke2.js && node test/smoke3_encoding.js && node test/smoke4_category_filter.js && node test/smoke5_real_columns.js && node test/smoke6_correction_download.js && node test/smoke7_adjustments.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.3",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^5.0.8",
+    "papaparse": "^5.5.4",
+    "xlsx": "^0.18.5"
+  }
+}

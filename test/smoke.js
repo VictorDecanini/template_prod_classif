@@ -209,11 +209,14 @@ async function main() {
   }
 
   const mailto = window.Report.buildMailto({
-    params: { categoria: 'Bebidas', cliente: 'Cliente Teste', bu: '', status: 'PILOTO', versao: '2.0', opcao: 'Opção 2', ftp: 'Não', regiaoUf: ['Sudeste'] },
+    params: { categoria: 'Bebidas', cliente: 'Cliente Teste', bu: '', status: 'PILOTO', versao: '2.0', opcao: 'Opção 2', opcaoDescricao: 'Nível 1: ScannMarket 1 e Nível 2: ScannMarket 2', ftp: 'Não', fenix: 'Não', regiaoUf: ['Sudeste'] },
     validationResults: { totalAchados: 7 }
   }, 'Scannmarket-br@scanntech.com,time@scanntech.com');
-  log('Mailto contem os dois destinatarios e assunto',
-    mailto.includes('Scannmarket-br@scanntech.com,time@scanntech.com') && mailto.includes('subject=Prod'), mailto);
+  log('Mailto contem os dois destinatarios e assunto executivo (maiusculo)',
+    mailto.includes('Scannmarket-br@scanntech.com,time@scanntech.com') &&
+    mailto.includes('subject=' + encodeURIComponent('SOLICITAÇÃO DE PROD – CLIENTE TESTE – BEBIDAS – 2.0')), mailto);
+  log('Corpo do e-mail explica o que a Opção significa',
+    decodeURIComponent(mailto).includes('Nível 1: ScannMarket 1 e Nível 2: ScannMarket 2'));
 
   console.log('\nSmoke test finalizado.');
 }

@@ -119,6 +119,13 @@ const Validations = (function () {
       }));
   }
 
+  // ---------- Prods com baixa relevancia (status "Revisar" da Etapa 3) ----------
+  function lowRelevanceGroups(list) {
+    return (list || [])
+      .filter(g => g.status === 'red')
+      .map(g => ({ nome: g.final, pct: g.pct, count: g.count }));
+  }
+
   // ---------- Categoria congelada vs Data Excellence ----------
   function categoriaChecks(baseRows) {
     const trocaramCategoria = [];
@@ -212,6 +219,8 @@ const Validations = (function () {
     results.categoria = categoriaChecks(baseRows);
     results.blankNivel1 = blankNivelRows(baseRows, 'nivel1');
     results.blankNivel2 = importanciaNivel2 ? blankNivelRows(baseRows, 'nivel2') : [];
+    results.lowRelevanceNivel1 = lowRelevanceGroups(importanciaNivel1);
+    results.lowRelevanceNivel2 = importanciaNivel2 ? lowRelevanceGroups(importanciaNivel2) : [];
 
     results.caseNivel1 = caseVariants(baseRows.map(r => r.nivel1));
     results.caseNivel2 = importanciaNivel2 ? caseVariants(baseRows.map(r => r.nivel2)) : [];
@@ -239,6 +248,7 @@ const Validations = (function () {
     totalAchados += results.eanCross.duplicatesInBase.length;
     totalAchados += results.categoria.trocaramCategoria.length;
     totalAchados += results.blankNivel1.length + results.blankNivel2.length;
+    totalAchados += results.lowRelevanceNivel1.length + results.lowRelevanceNivel2.length;
     totalAchados += results.caseNivel1.length + results.caseNivel2.length;
     totalAchados += results.whitespace.length;
     totalAchados += results.nearDupNivel1.length + results.nearDupNivel2.length;

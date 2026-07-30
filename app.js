@@ -38,7 +38,7 @@
 
   const state = {
     params: {
-      categoria: '', cliente: '', bu: '', status: '', versao: '2.0', ftp: 'Não',
+      categoria: '', cliente: '', bu: '', status: '', versao: '2.0', ftp: 'Não', fenix: 'Não',
       regiaoUf: [], opcao: null, deveraPreencher: ''
     },
     files: { base: null, classif: null },
@@ -73,6 +73,16 @@
     return 'NADA';
   }
 
+  function computeOpcaoDescricao(opcao, versao) {
+    if (!opcao) return '';
+    const p = smNumeroPrimario(versao), s = smNumeroSecundario(versao);
+    if (opcao === 'Opção 1') return 'Nível 1: Categoria ScannTech e Nível 2: ScannMarket ' + p;
+    if (opcao === 'Opção 2') return 'Nível 1: ScannMarket ' + p + ' e Nível 2: ScannMarket ' + s;
+    if (opcao === 'Opção 3') return 'Nível 1: Categoria ScannTech (sem Nível 2)';
+    if (opcao === 'Opção 4') return 'Nível 1: ScannMarket ' + p + ' (sem Nível 2)';
+    return '';
+  }
+
   // ==================================================================
   // STEP 1 — PARAMETROS
   // ==================================================================
@@ -92,6 +102,15 @@
         ftpEl.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('is-active'));
         btn.classList.add('is-active');
         state.params.ftp = btn.dataset.val;
+      });
+    });
+
+    const fenixEl = document.getElementById('f-fenix');
+    fenixEl.querySelectorAll('.seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        fenixEl.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        state.params.fenix = btn.dataset.val;
       });
     });
 
@@ -119,6 +138,7 @@
 
   function refreshDeveraPreencher() {
     state.params.deveraPreencher = computeDeveraPreencher(state.params.opcao, state.params.versao);
+    state.params.opcaoDescricao = computeOpcaoDescricao(state.params.opcao, state.params.versao);
     const el = document.getElementById('f-deverapreencher');
     if (!state.params.opcao) {
       el.textContent = 'Selecione uma opção para ver o que deverá ser preenchido no classificaciones.';
@@ -461,24 +481,32 @@
     });
   }
 
-  function buildImportanciaTable(title, groups, storeKey) {
+  function buildImportanciaTable(title, groups, storeKey, blockId) {
     const wrap = document.createElement('div');
     wrap.className = 'importancia-block';
+    if (blockId) wrap.id = blockId;
     const h = document.createElement('h3');
     h.textContent = title;
     wrap.appendChild(h);
 
+    const editHint = document.createElement('p');
+    editHint.className = 'edit-hint';
+    editHint.innerHTML = '<i class="ti ti-pencil"></i> As caixas da coluna <strong>"Nome Final - Editável"</strong> podem ser alteradas — clique e digite o nome correto para corrigir algum erro de digitação.';
+    wrap.appendChild(editHint);
+
     const table = document.createElement('table');
     table.className = 'data-table';
-    table.innerHTML = '<thead><tr><th>Valor detectado</th><th>Nome final</th><th>SKUs</th><th>Importância</th><th>Status</th></tr></thead>';
+    table.innerHTML = '<thead><tr><th>Valor detectado</th><th>Nome Final - Editável</th><th>SKUs</th><th>Importância</th>' +
+      '<th>Status<span class="th-sub">Revisar: abaixo de 4% · Atenção: 4%–5% · OK: 5% ou mais</span></th></tr></thead>';
     const tbody = document.createElement('tbody');
     groups.forEach((g, idx) => {
       const tr = document.createElement('tr');
+      if (g.status === 'red') tr.className = 'row-revisar';
       const badgeClass = g.status === 'green' ? 'badge-green' : g.status === 'amber' ? 'badge-amber' : 'badge-red';
       const badgeText = g.status === 'green' ? 'OK' : g.status === 'amber' ? 'Atenção' : 'Revisar';
       tr.innerHTML =
         '<td>' + escapeHtml(g.original) + '</td>' +
-        '<td><input type="text" data-idx="' + idx + '" data-store="' + storeKey + '" value="' + escapeAttr(g.final) + '"></td>' +
+        '<td><input type="text" class="nome-final-input" data-idx="' + idx + '" data-store="' + storeKey + '" value="' + escapeAttr(g.final) + '"></td>' +
         '<td>' + g.count.toLocaleString('pt-BR') + '</td>' +
         '<td>' + g.pct.toFixed(2).replace('.', ',') + '%</td>' +
         '<td><span class="badge ' + badgeClass + '">' + badgeText + '</span></td>';
@@ -498,16 +526,22 @@
     const area = document.getElementById('importancia-area');
     area.innerHTML = '';
 
-    area.appendChild(buildBlankValuesCallout());
+    const blankWrap = document.createElement('div');
+    blankWrap.className = 'importancia-block';
+    const blankH = document.createElement('h3');
+    blankH.textContent = '3.0 Itens com classificação em branco';
+    blankWrap.appendChild(blankH);
+    blankWrap.appendChild(buildBlankValuesCallout());
+    area.appendChild(blankWrap);
 
     const g1 = mergeFinalValues(Validations.attachPctAndStatus(Validations.computeGroupStats(state.baseRowsMapped, 'nivel1')), state.importanciaNivel1);
     state.importanciaNivel1 = g1;
-    area.appendChild(buildImportanciaTable('Nível 1', g1, 'nivel1'));
+    area.appendChild(buildImportanciaTable('3.1 Nível 1', g1, 'nivel1', 'importancia-nivel1-block'));
 
     if (hasNivel2(state.params.opcao)) {
       const g2 = mergeFinalValues(Validations.attachPctAndStatus(Validations.computeGroupStats(state.baseRowsMapped, 'nivel2')), state.importanciaNivel2);
       state.importanciaNivel2 = g2;
-      area.appendChild(buildImportanciaTable('Nível 2', g2, 'nivel2'));
+      area.appendChild(buildImportanciaTable('3.2 Nível 2', g2, 'nivel2', 'importancia-nivel2-block'));
     } else {
       state.importanciaNivel2 = null;
     }
@@ -733,65 +767,138 @@
       return s;
     }
 
-    addCheck(area, 'SKUs sem classificação de Nível 1',
-      'SKUs da base congelada que não têm nenhum valor no campo de Nível 1 — ficaram sem classificação nenhuma.',
-      v.blankNivel1, skuLabel, Core.RECOMENDACOES.blankNivel);
-    if (v.blankNivel2.length || (state.importanciaNivel2 && state.importanciaNivel2.length)) {
-      addCheck(area, 'SKUs sem classificação de Nível 2',
-        'SKUs da base congelada que não têm nenhum valor no campo de Nível 2 — ficaram sem classificação nenhuma.',
-        v.blankNivel2, skuLabel, Core.RECOMENDACOES.blankNivel);
-    }
-    addCheck(area, 'SKUs na base congelada não encontrados no classificaciones',
-      'SKUs que já têm uma classificação na base congelada desta rodada, mas que não aparecem em nenhuma linha do report Classificaciones para a categoria filtrada. É esperado que isso aconteça às vezes (SKU descontinuado, ou classificação ainda não processada) — vale a pena olhar o volume de cada um pra saber se merece atenção.',
-      v.eanCross.onlyInBase, skuLabel, Core.RECOMENDACOES.onlyInBase, 'warning');
-    addCheck(area, 'SKUs no classificaciones não encontrados na base congelada',
-      'SKUs que já existem classificados no Classificaciones para essa categoria, mas que não vieram na base congelada enviada nesta rodada. Também é uma situação comum — não significa necessariamente um problema.',
-      v.eanCross.onlyInClassif, d => d.codigoBarras + (d.descricao ? ' — ' + d.descricao : ''), Core.RECOMENDACOES.onlyInClassif, 'warning');
-    addCheck(area, 'EAN duplicado dentro da base congelada',
-      'O mesmo EAN aparece em mais de uma linha da base congelada enviada — isso pode fazer a venda desse produto ser contada em dobro no cálculo de Importância.',
-      v.eanCross.duplicatesInBase, d => skuLabel(d) + '  (' + d.count + ' linhas)', Core.RECOMENDACOES.duplicatesInBase);
-    addCheck(area, 'Possível divergência de formato de EAN (zero à esquerda)',
-      'O mesmo produto aparece com quantidade diferente de dígitos entre as duas bases — geralmente é EAN tratado como número em uma planilha (perdendo o zero à esquerda) e como texto na outra.',
-      v.eanCross.formatMismatches, d => 'Base congelada: ' + d.base + '   |   Classificaciones: ' + d.classificaciones, Core.RECOMENDACOES.eanFormat);
-    addCheck(area, 'SKUs que trocaram de categoria',
-      'A Categoria congelada (a que já estava classificada) é diferente da Categoria atual em Data Excellence (a mais recente) para o mesmo SKU — o produto mudou de categoria entre uma base e outra.',
-      v.categoria.trocaramCategoria, d => skuLabel(d) + ':  ' + d.de + '  →  ' + d.para, Core.RECOMENDACOES.trocaramCategoria);
+    const jump3_0 = { label: 'Ir para o Passo 3.0', sectionId: 'blank-values-callout' };
+    const jump3_1 = { label: 'Ir para o Passo 3.1', sectionId: 'importancia-nivel1-block' };
+    const jump3_2 = { label: 'Ir para o Passo 3.2', sectionId: 'importancia-nivel2-block' };
 
-    if (v.classifNivel1) {
-      addCheck(area, 'Nível 1 não refletido no report Classificaciones',
-        'Um nome confirmado na Etapa 3 (Importância) para o Nível 1 não aparece em nenhuma linha do report Classificaciones — a classificação pedida pode não ter sido processada ainda pelo sistema.',
-        v.classifNivel1.naoRefletida, x => x, Core.RECOMENDACOES.classifNaoRefletida);
-      addCheck(area, 'Nível 1 incorreto no report Classificaciones',
-        'Um valor encontrado no report Classificaciones não corresponde a nenhum nome confirmado na Etapa 3 — pode ser um erro de digitação feito direto no sistema, ou uma Prod nova que ainda não foi registrada.',
-        v.classifNivel1.incorreta, x => x, Core.RECOMENDACOES.classifIncorreta);
-    }
-    if (v.classifNivel2) {
-      addCheck(area, 'Nível 2 não refletido no report Classificaciones',
-        'Um nome confirmado na Etapa 3 (Importância) para o Nível 2 não aparece em nenhuma linha do report Classificaciones — a classificação pedida pode não ter sido processada ainda pelo sistema.',
-        v.classifNivel2.naoRefletida, x => x, Core.RECOMENDACOES.classifNaoRefletida);
-      addCheck(area, 'Nível 2 incorreto no report Classificaciones',
-        'Um valor encontrado no report Classificaciones não corresponde a nenhum nome confirmado na Etapa 3 — pode ser um erro de digitação feito direto no sistema, ou uma Prod nova que ainda não foi registrada.',
-        v.classifNivel2.incorreta, x => x, Core.RECOMENDACOES.classifIncorreta);
-    }
+    // Ordem de prioridade: primeiro o que mais afeta o dashboard final
+    // (classificação não refletida/incorreta, SKU sem classificação, prod de
+    // baixa relevância, divergência de grafia), depois o resto.
+    const checkDefs = [
+      v.classifNivel1 && {
+        title: 'Nível 1 não refletido no report Classificaciones',
+        desc: 'Um nome confirmado na Etapa 3 (Importância) para o Nível 1 não aparece em nenhuma linha do report Classificaciones — a classificação pedida pode não ter sido processada ainda pelo sistema.',
+        items: v.classifNivel1.naoRefletida, formatter: x => x, recommendation: Core.RECOMENDACOES.classifNaoRefletida
+      },
+      v.classifNivel1 && {
+        title: 'Nível 1 incorreto no report Classificaciones',
+        desc: 'Um valor encontrado no report Classificaciones não corresponde a nenhum nome confirmado na Etapa 3 — pode ser um erro de digitação feito direto no sistema, ou uma Prod nova que ainda não foi registrada.',
+        items: v.classifNivel1.incorreta, formatter: x => x, recommendation: Core.RECOMENDACOES.classifIncorreta
+      },
+      v.classifNivel2 && {
+        title: 'Nível 2 não refletido no report Classificaciones',
+        desc: 'Um nome confirmado na Etapa 3 (Importância) para o Nível 2 não aparece em nenhuma linha do report Classificaciones — a classificação pedida pode não ter sido processada ainda pelo sistema.',
+        items: v.classifNivel2.naoRefletida, formatter: x => x, recommendation: Core.RECOMENDACOES.classifNaoRefletida
+      },
+      v.classifNivel2 && {
+        title: 'Nível 2 incorreto no report Classificaciones',
+        desc: 'Um valor encontrado no report Classificaciones não corresponde a nenhum nome confirmado na Etapa 3 — pode ser um erro de digitação feito direto no sistema, ou uma Prod nova que ainda não foi registrada.',
+        items: v.classifNivel2.incorreta, formatter: x => x, recommendation: Core.RECOMENDACOES.classifIncorreta
+      },
+      {
+        title: 'SKUs sem classificação de Nível 1',
+        desc: 'SKUs da base congelada que não têm nenhum valor no campo de Nível 1 — ficaram sem classificação nenhuma.',
+        items: v.blankNivel1, formatter: skuLabel, recommendation: Core.RECOMENDACOES.blankNivel, jumpTo: jump3_0
+      },
+      (v.blankNivel2.length || (state.importanciaNivel2 && state.importanciaNivel2.length)) && {
+        title: 'SKUs sem classificação de Nível 2',
+        desc: 'SKUs da base congelada que não têm nenhum valor no campo de Nível 2 — ficaram sem classificação nenhuma.',
+        items: v.blankNivel2, formatter: skuLabel, recommendation: Core.RECOMENDACOES.blankNivel, jumpTo: jump3_0
+      },
+      {
+        title: 'Prods com baixa relevância (Revisar) — Nível 1',
+        desc: 'Grupos do Nível 1 com Importância abaixo de 4% — status "Revisar" na Etapa 3.',
+        items: v.lowRelevanceNivel1, formatter: g => '"' + g.nome + '"  —  ' + g.count + ' SKU(s)  —  ' + g.pct.toFixed(2).replace('.', ',') + '%',
+        recommendation: Core.RECOMENDACOES.lowRelevance, jumpTo: jump3_1
+      },
+      (state.importanciaNivel2 && state.importanciaNivel2.length) && {
+        title: 'Prods com baixa relevância (Revisar) — Nível 2',
+        desc: 'Grupos do Nível 2 com Importância abaixo de 4% — status "Revisar" na Etapa 3.',
+        items: v.lowRelevanceNivel2, formatter: g => '"' + g.nome + '"  —  ' + g.count + ' SKU(s)  —  ' + g.pct.toFixed(2).replace('.', ',') + '%',
+        recommendation: Core.RECOMENDACOES.lowRelevance, jumpTo: jump3_2
+      },
+      {
+        title: 'Divergência de maiúscula/minúscula — Nível 1',
+        desc: 'O mesmo texto aparece grafado de formas diferentes (ex.: "Refrigerantes" e "refrigerantes"). O Excel não pega isso porque COUNTIF/MATCH ignoram caixa, mas no dashboard final essas duas grafias virariam duas Prods diferentes.',
+        items: v.caseNivel1, formatter: g => g.variants.map(x => '"' + x.value + '" (' + x.count + ')').join('  vs  '), recommendation: Core.RECOMENDACOES.caseVariants, jumpTo: jump3_1
+      },
+      (state.importanciaNivel2 && state.importanciaNivel2.length) && {
+        title: 'Divergência de maiúscula/minúscula — Nível 2',
+        desc: 'Mesma lógica acima, aplicada ao Nível 2.',
+        items: v.caseNivel2, formatter: g => g.variants.map(x => '"' + x.value + '" (' + x.count + ')').join('  vs  '), recommendation: Core.RECOMENDACOES.caseVariants, jumpTo: jump3_2
+      },
+      {
+        title: 'Possíveis erros de digitação — Nível 1',
+        desc: 'Dois nomes confirmados na Etapa 3 são muito parecidos entre si (distância de edição ≤ 2 caracteres) — pode ser o mesmo produto/Prod digitado de forma levemente diferente em dois lugares.',
+        items: v.nearDupNivel1, formatter: p => '"' + p.a + '"  vs  "' + p.b + '"  (distância ' + p.dist + ')', recommendation: Core.RECOMENDACOES.nearDup, jumpTo: jump3_1
+      },
+      (state.importanciaNivel2 && state.importanciaNivel2.length) && {
+        title: 'Possíveis erros de digitação — Nível 2',
+        desc: 'Mesma lógica acima, aplicada ao Nível 2.',
+        items: v.nearDupNivel2, formatter: p => '"' + p.a + '"  vs  "' + p.b + '"  (distância ' + p.dist + ')', recommendation: Core.RECOMENDACOES.nearDup, jumpTo: jump3_2
+      },
+      {
+        title: 'Espaços em branco indevidos',
+        desc: 'Espaço no início, no fim ou duplo no meio do texto de uma classificação — invisível a olho nu, mas pode quebrar comparações exatas em outras etapas do processo ou em outras ferramentas.',
+        items: v.whitespace, formatter: w => w.ean + '  [' + w.campo + ']  ' + w.valor, recommendation: Core.RECOMENDACOES.whitespace
+      },
+      {
+        title: 'SKUs na base congelada não encontrados no classificaciones',
+        desc: 'SKUs que já têm uma classificação na base congelada desta rodada, mas que não aparecem em nenhuma linha do report Classificaciones para a categoria filtrada. É esperado que isso aconteça às vezes (SKU descontinuado, ou classificação ainda não processada) — vale a pena olhar o volume de cada um pra saber se merece atenção.',
+        items: v.eanCross.onlyInBase, formatter: skuLabel, recommendation: Core.RECOMENDACOES.onlyInBase, severity: 'warning'
+      },
+      {
+        title: 'SKUs no classificaciones não encontrados na base congelada',
+        desc: 'SKUs que já existem classificados no Classificaciones para essa categoria, mas que não vieram na base congelada enviada nesta rodada. Também é uma situação comum — não significa necessariamente um problema.',
+        items: v.eanCross.onlyInClassif, formatter: d => d.codigoBarras + (d.descricao ? ' — ' + d.descricao : ''), recommendation: Core.RECOMENDACOES.onlyInClassif, severity: 'warning'
+      },
+      {
+        title: 'EAN duplicado dentro da base congelada',
+        desc: 'O mesmo EAN aparece em mais de uma linha da base congelada enviada — isso pode fazer a venda desse produto ser contada em dobro no cálculo de Importância.',
+        items: v.eanCross.duplicatesInBase, formatter: d => skuLabel(d) + '  (' + d.count + ' linhas)', recommendation: Core.RECOMENDACOES.duplicatesInBase
+      },
+      {
+        title: 'Possível divergência de formato de EAN (zero à esquerda)',
+        desc: 'O mesmo produto aparece com quantidade diferente de dígitos entre as duas bases — geralmente é EAN tratado como número em uma planilha (perdendo o zero à esquerda) e como texto na outra.',
+        items: v.eanCross.formatMismatches, formatter: d => 'Base congelada: ' + d.base + '   |   Classificaciones: ' + d.classificaciones, recommendation: Core.RECOMENDACOES.eanFormat
+      },
+      {
+        title: 'SKUs que trocaram de categoria',
+        desc: 'A Categoria congelada (a que já estava classificada) é diferente da Categoria atual em Data Excellence (a mais recente) para o mesmo SKU — o produto mudou de categoria entre uma base e outra.',
+        items: v.categoria.trocaramCategoria, formatter: d => skuLabel(d) + ':  ' + d.de + '  →  ' + d.para, recommendation: Core.RECOMENDACOES.trocaramCategoria
+      }
+    ].filter(Boolean);
 
-    addCheck(area, 'Divergência de maiúscula/minúscula — Nível 1',
-      'O mesmo texto aparece grafado de formas diferentes (ex.: "Refrigerantes" e "refrigerantes"). O Excel não pega isso porque COUNTIF/MATCH ignoram caixa, mas no dashboard final essas duas grafias virariam duas Prods diferentes.',
-      v.caseNivel1, g => g.variants.map(x => '"' + x.value + '" (' + x.count + ')').join('  vs  '), Core.RECOMENDACOES.caseVariants);
-    addCheck(area, 'Divergência de maiúscula/minúscula — Nível 2',
-      'Mesma lógica acima, aplicada ao Nível 2.',
-      v.caseNivel2, g => g.variants.map(x => '"' + x.value + '" (' + x.count + ')').join('  vs  '), Core.RECOMENDACOES.caseVariants);
-    addCheck(area, 'Espaços em branco indevidos',
-      'Espaço no início, no fim ou duplo no meio do texto de uma classificação — invisível a olho nu, mas pode quebrar comparações exatas em outras etapas do processo ou em outras ferramentas.',
-      v.whitespace, w => w.ean + '  [' + w.campo + ']  ' + w.valor, Core.RECOMENDACOES.whitespace);
-    addCheck(area, 'Possíveis erros de digitação — Nível 1',
-      'Dois nomes confirmados na Etapa 3 são muito parecidos entre si (distância de edição ≤ 2 caracteres) — pode ser o mesmo produto/Prod digitado de forma levemente diferente em dois lugares.',
-      v.nearDupNivel1, p => '"' + p.a + '"  vs  "' + p.b + '"  (distância ' + p.dist + ')', Core.RECOMENDACOES.nearDup);
-    addCheck(area, 'Possíveis erros de digitação — Nível 2',
-      'Mesma lógica acima, aplicada ao Nível 2.',
-      v.nearDupNivel2, p => '"' + p.a + '"  vs  "' + p.b + '"  (distância ' + p.dist + ')', Core.RECOMENDACOES.nearDup);
+    const totalChecks = checkDefs.length;
+    const approved = checkDefs.filter(c => c.items.length === 0).length;
+    const pending = totalChecks - approved;
+
+    const summary = document.createElement('div');
+    summary.className = 'callout ' + (pending === 0 ? '' : 'callout-info');
+    summary.style.marginBottom = '16px';
+    summary.innerHTML = pending === 0
+      ? '<i class="ti ti-check"></i> <strong>' + totalChecks + '/' + totalChecks + ' verificações aprovadas</strong> — nenhum ponto de atenção encontrado.'
+      : '<i class="ti ti-list-check"></i> <strong>' + approved + '/' + totalChecks + ' verificações aprovadas</strong> — as ' + pending +
+        ' abaixo precisam de atenção, ordenadas da mais para a menos relevante.';
+    area.appendChild(summary);
+
+    checkDefs.filter(c => c.items.length > 0).forEach(c => {
+      addCheck(area, c.title, c.desc, c.items, c.formatter, c.recommendation, c.severity, c.jumpTo);
+    });
   }
 
-  function addCheck(container, title, desc, items, formatter, recommendation, severity) {
+  function jumpToStep3(sectionId) {
+    goToStep(3);
+    setTimeout(() => {
+      const el = document.getElementById(sectionId);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('flash-highlight');
+      setTimeout(() => el.classList.remove('flash-highlight'), 3000);
+    }, 60);
+  }
+
+  function addCheck(container, title, desc, items, formatter, recommendation, severity, jumpTo) {
     const card = document.createElement('div');
     card.className = 'check-card';
     const count = items ? items.length : 0;
@@ -800,7 +907,7 @@
 
     const head = document.createElement('div');
     head.className = 'check-head';
-    head.innerHTML = '<i class="ti ti-chevron-right chev"></i><strong>' + title + '</strong><span class="badge ' + badgeClass + '">' + badgeText + '</span>';
+    head.innerHTML = '<strong>' + title + '</strong><span class="badge ' + badgeClass + '">' + badgeText + '</span><i class="ti ti-chevron-right chev"></i>';
     head.addEventListener('click', () => card.classList.toggle('is-open'));
     card.appendChild(head);
 
@@ -837,6 +944,14 @@
         const rec = document.createElement('div');
         rec.className = 'recommendation';
         rec.innerHTML = '<strong>Recomendação:</strong> ' + escapeHtml(recommendation);
+        if (jumpTo) {
+          const jumpBtn = document.createElement('button');
+          jumpBtn.type = 'button';
+          jumpBtn.className = 'jump-btn';
+          jumpBtn.innerHTML = jumpTo.label + ' <i class="ti ti-arrow-right"></i>';
+          jumpBtn.addEventListener('click', (e) => { e.stopPropagation(); jumpToStep3(jumpTo.sectionId); });
+          rec.appendChild(jumpBtn);
+        }
         body.appendChild(rec);
       }
     }
@@ -854,7 +969,9 @@
     document.getElementById('btn-gen-pdf').addEventListener('click', () => Report.generatePDF(state));
     document.getElementById('btn-gen-email').addEventListener('click', () => {
       const mailto = Report.buildMailto(state, getEmailRecipients().join(','));
-      window.location.href = mailto;
+      // Abre numa aba separada, sem tirar o usuario da ferramenta - assim ele
+      // continua podendo baixar o PDF/arquivo depois sem perder nada.
+      window.open(mailto, '_blank');
       document.getElementById('report-reminder').hidden = false;
     });
     renderCorrectedBaseCard();
@@ -909,36 +1026,38 @@
     return [FIXED_EMAIL].concat(state.emailExtraRecipients || []);
   }
 
-  // Secao extra (montada por JS, nao esta no index.html) para baixar a base
-  // congelada com as correcoes do Passo 3 ja aplicadas. Fica fora do grid de
-  // PDF/E-mail, com uma divisoria, pra nao brigar de layout com os outros 2.
+  // Secao extra (montada por JS, nao esta no index.html) para baixar o arquivo
+  // de prods corrigidas com as correcoes do Passo 3 ja aplicadas. Fica ANTES
+  // do grid de PDF/E-mail, como "Etapa 1" - so' e' necessaria se algo foi
+  // corrigido no Passo 3; o PDF/e-mail (Etapa 2) sempre acontecem.
   function renderCorrectedBaseCard() {
     const grid = document.querySelector('#panel-5 .report-grid');
     if (!grid || document.getElementById('corrected-base-card')) return;
-
-    const divider = document.createElement('div');
-    divider.className = 'report-divider';
-    divider.innerHTML = '<span>ou baixe a base corrigida</span>';
-    grid.parentNode.insertBefore(divider, grid.nextSibling);
 
     const section = document.createElement('div');
     section.className = 'corrected-base-section';
     section.id = 'corrected-base-card';
     section.innerHTML = '<div class="corrected-base-info"><i class="ti ti-file-check"></i><div>' +
-      '<strong>Base corrigida para subir prod no classificaciones</strong>' +
-      '<span class="corrected-base-flow">Baixe a base&nbsp;→&nbsp;confira se todos os ajustes de Prod foram realizados&nbsp;→&nbsp;suba no classificaciones novamente.</span>' +
+      '<span class="step-eyebrow">1 · Só se algo foi corrigido no Passo 3</span>' +
+      '<strong>Arquivo de prods corrigidas</strong>' +
+      '<span class="corrected-base-flow">Baixe o arquivo&nbsp;→&nbsp;confira se todos os ajustes de Prod foram realizados&nbsp;→&nbsp;suba no classificaciones novamente.</span>' +
       '<span id="corrected-base-desc"></span>' +
       '</div></div>';
     const btn = document.createElement('button');
     btn.className = 'btn btn-secondary';
     btn.id = 'btn-gen-corrected-base';
-    btn.textContent = 'Baixar base corrigida';
+    btn.textContent = 'Baixar arquivo';
     btn.addEventListener('click', () => {
       const rows = buildCorrectedBaseRows();
       Report.downloadCorrectedBase(state, rows);
     });
     section.appendChild(btn);
-    divider.parentNode.insertBefore(section, divider.nextSibling);
+    grid.parentNode.insertBefore(section, grid);
+
+    const divider = document.createElement('div');
+    divider.className = 'report-divider';
+    divider.innerHTML = '<span>2 · Envie a solicitação (sempre, independente de correção)</span>';
+    grid.parentNode.insertBefore(divider, grid);
   }
 
   function updateCorrectedBaseCardDesc() {
@@ -948,6 +1067,45 @@
     desc.textContent = total === 0
       ? 'Nenhuma correção feita no Passo 3 — mesma estrutura do arquivo original.'
       : total + ' correção(ões) do Passo 3 já aplicadas — mesma estrutura do arquivo original.';
+  }
+
+  // Aviso no topo do Passo 5 avisando o que ainda ficou pendente da validação,
+  // com atalho direto pra onde resolver - pra ninguem enviar a solicitacao
+  // sem perceber que ainda ha' pontos em aberto.
+  function renderStep5PendingWarning() {
+    let el = document.getElementById('step5-pending-warning');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'step5-pending-warning';
+      el.style.marginBottom = '18px';
+      const panelHead = document.querySelector('#panel-5 .panel-head');
+      panelHead.parentNode.insertBefore(el, panelHead.nextSibling);
+    }
+    const v = state.validationResults;
+    if (!v || v.totalAchados === 0) {
+      el.className = 'callout';
+      el.innerHTML = '<i class="ti ti-check"></i> Nenhuma pendência da validação — pode seguir com o relatório.';
+      return;
+    }
+    const blankTotal = v.blankNivel1.length + v.blankNivel2.length;
+    const lowRelTotal = v.lowRelevanceNivel1.length + v.lowRelevanceNivel2.length;
+    const restTotal = v.totalAchados - blankTotal - lowRelTotal;
+    const parts = [];
+    if (blankTotal) parts.push(blankTotal + ' SKU(s) sem classificação');
+    if (lowRelTotal) parts.push(lowRelTotal + ' Prod(s) com baixa relevância (Revisar)');
+    if (restTotal > 0) parts.push(restTotal + ' outro(s) ponto(s) de validação');
+
+    el.className = 'callout callout-danger';
+    let html = '<i class="ti ti-alert-triangle"></i><div><strong>' + v.totalAchados + ' pendência(s) ainda em aberto:</strong> ' +
+      escapeHtml(parts.join(', ')) + '.';
+    if (blankTotal || lowRelTotal) html += '<button type="button" class="jump-btn" id="step5-jump-step3">Ir para o Passo 3 <i class="ti ti-arrow-right"></i></button>';
+    if (restTotal > 0) html += '<button type="button" class="jump-btn" id="step5-jump-step4">Ver detalhes no Passo 4 <i class="ti ti-arrow-right"></i></button>';
+    html += '</div>';
+    el.innerHTML = html;
+    const b3 = document.getElementById('step5-jump-step3');
+    if (b3) b3.addEventListener('click', () => goToStep(3));
+    const b4 = document.getElementById('step5-jump-step4');
+    if (b4) b4.addEventListener('click', () => goToStep(4));
   }
 
   // ==================================================================
@@ -964,7 +1122,7 @@
     });
     if (n === 2) renderMappingArea();
     if (n === 3) renderImportanciaArea();
-    if (n === 5) updateCorrectedBaseCardDesc();
+    if (n === 5) { updateCorrectedBaseCardDesc(); renderStep5PendingWarning(); }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 

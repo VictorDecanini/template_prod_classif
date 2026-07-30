@@ -87,6 +87,26 @@ corrigir manualmente também, então a detecção errada nunca trava o uso.
 
 ## Changelog
 
+- **Lote grande de ajustes de usabilidade**:
+  - Passo 1: novo toggle "Precisa de Fênix?" ao lado do de FTP.
+  - Passo 2: caixas de upload com cor de destaque por padrão (não só no hover).
+  - Passo 3: coluna renomeada para "Nome Final - Editável" com dica visual de
+    que o campo é editável; subseções numeradas (3.0 branco, 3.1 Nível 1, 3.2
+    Nível 2); legenda dos limiares de status; linha inteira em vermelho-claro
+    quando o status é "Revisar".
+  - Passo 4: nova checagem de "baixa relevância" (grupos com Importância
+    abaixo de 4%); seta movida para o fim do card (mais claro que é
+    clicável); só aparecem os cards com problema, com um resumo tipo
+    "10/18 verificações aprovadas" no topo; ordenados por relevância
+    (classificação incorreta/não refletida primeiro); botão de atalho que
+    volta ao Passo 3 certo e destaca a seção.
+  - Passo 5: aviso de pendências no topo listando o que falta e onde
+    resolver; arquivo corrigido renomeado e movido para o topo, com
+    instrução deixando claro que é uma etapa condicional (só se algo mudou
+    no Passo 3), separada do envio do relatório (que sempre acontece); botão
+    de e-mail agora abre em nova aba, sem perder a ferramenta aberta.
+  - E-mail: assunto mais executivo (maiúsculas, com cliente/categoria/versão)
+    e corpo explicando o que a opção de classificação escolhida significa.
 - **Duas checagens não contam mais como "problema"** — "SKU só numa base" e
   "SKU só na outra" continuam aparecendo como alerta amarelo, mas não somam
   mais no contador de achados do topo do dashboard, já que são situações
@@ -166,6 +186,10 @@ DOM simulado (jsdom) com dados sintéticos:
 - `smoke8_severity.js` — "SKU só numa base" e "SKU só na outra" aparecem em
   amarelo (aviso), não vermelho; os demais cards continuam vermelhos quando
   há achados.
+- `smoke9_big_batch.js` — o lote grande de ajustes: toggle extra no Passo 1,
+  subseções numeradas e destaque de linha no Passo 3, resumo/ordenação/checks
+  ocultos/atalho no Passo 4, e aviso de pendências + e-mail em nova aba no
+  Passo 5.
 
 ```
 npm install

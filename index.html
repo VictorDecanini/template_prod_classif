@@ -66,12 +66,23 @@
         </select>
       </div>
       <div class="field">
-        <label>Cliente receberá FTP?</label>
-        <div class="segmented" id="f-ftp" data-value="Não">
-          <button type="button" class="seg-btn" data-val="Sim">Sim</button>
-          <button type="button" class="seg-btn is-active" data-val="Não">Não</button>
+        <div class="toggle-pair">
+          <div class="toggle-item">
+            <label>Precisa de FTP?</label>
+            <div class="segmented" id="f-ftp" data-value="Não">
+              <button type="button" class="seg-btn" data-val="Sim">Sim</button>
+              <button type="button" class="seg-btn is-active" data-val="Não">Não</button>
+            </div>
+          </div>
+          <div class="toggle-item">
+            <label>Precisa de Fênix?</label>
+            <div class="segmented" id="f-fenix" data-value="Não">
+              <button type="button" class="seg-btn" data-val="Sim">Sim</button>
+              <button type="button" class="seg-btn is-active" data-val="Não">Não</button>
+            </div>
+          </div>
         </div>
-        <p class="field-hint">Necessidade de receber a base após a criação do dash, antes da produção regular.</p>
+        <p class="field-hint">FTP: necessidade de receber a base após a criação do dash, antes da produção regular. Fênix: marque Sim se essa solicitação também depende do processo Fênix.</p>
       </div>
     </div>
 

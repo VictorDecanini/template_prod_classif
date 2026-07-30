@@ -59,7 +59,7 @@ async function main() {
     ['EAN', 'Descricao SKU', 'Fabricante', 'Marca', 'Categoria Congelada', 'Categoria Data Excellence', 'ScannMarket 3', 'impVta24'],
     ['7891111111111', 'Queijo Mussarela 500g', 'Fab X', 'Marca X', 'Laticinios', 'Laticinios', 'Queijos', 1200000.5],
     ['7891111111112', 'Iogurte Natural 170g', 'Fab Y', 'Marca Y', 'Laticinios', 'Laticinios', 'Iogurtes', 300000],
-    ['7891111111113', 'Manteiga 200g', 'Fab Z', 'Marca Z', 'Laticinios', 'Laticinios', 'Manteigas', 50000]
+    ['7891111111113', 'Manteiga 200g', 'Fab Z', 'Marca Z', 'Laticinios', 'Laticinios', 'Manteigas', 150000]
   ];
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   XLSX.utils.book_append_sheet(wb, ws, 'Base');

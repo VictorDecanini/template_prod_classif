@@ -143,7 +143,7 @@ async function main() {
     trocaRec && trocaRec.textContent.includes('OUTROS'), trocaRec && trocaRec.textContent);
 
   const eanFormatCard = findCheck('formato de EAN');
-  log('Card de formato de EAN existe e descrição explica o problema', eanFormatCard && eanFormatCard.textContent.includes('zero à esquerda'));
+  log('Card de formato de EAN some quando não há achado (Passo 4 só mostra o que tem problema)', eanFormatCard === undefined);
 
   $('#btn-to-step5').dispatchEvent(new window.Event('click'));
 
@@ -152,13 +152,24 @@ async function main() {
   log('Card de Excel foi removido', !$('.report-grid').textContent.includes('Excel enxuto'), $('.report-grid').textContent.slice(0, 80));
   log('Grid tem só 2 cards lado a lado (PDF e E-mail)', doc.querySelectorAll('.report-grid .report-card').length === 2, doc.querySelectorAll('.report-grid .report-card').length);
   log('Base corrigida está FORA do grid, como seção separada', $('#corrected-base-card') && !$('.report-grid').contains($('#corrected-base-card')));
-  log('Existe uma divisória antes da seção de base corrigida', $('.report-divider') !== null);
-  log('Título novo da seção de base corrigida',
-    $('#corrected-base-card').textContent.includes('Base corrigida para subir prod no classificaciones'));
+  log('Existe uma divisória', $('.report-divider') !== null);
+  const correctedCardEl = $('#corrected-base-card');
+  const gridEl = $('.report-grid');
+  log('Seção de arquivo corrigido vem ANTES do grid de PDF/E-mail (etapa 1 antes da etapa 2)',
+    correctedCardEl.compareDocumentPosition(gridEl) & window.Node.DOCUMENT_POSITION_FOLLOWING);
+  log('Título novo: "Arquivo de prods corrigidas"', correctedCardEl.textContent.includes('Arquivo de prods corrigidas'));
+  log('Texto deixa claro que essa etapa é condicional (só se algo mudou no Passo 3)',
+    correctedCardEl.textContent.includes('Só se algo foi corrigido no Passo 3'));
   log('Instrução de 3 passos aparece (baixar -> conferir -> subir)',
-    $('#corrected-base-card').textContent.includes('Baixe a base') &&
-    $('#corrected-base-card').textContent.includes('confira se todos os ajustes de Prod foram realizados') &&
-    $('#corrected-base-card').textContent.includes('suba no classificaciones novamente'));
+    correctedCardEl.textContent.includes('Baixe o arquivo') &&
+    correctedCardEl.textContent.includes('confira se todos os ajustes de Prod foram realizados') &&
+    correctedCardEl.textContent.includes('suba no classificaciones novamente'));
+  log('Botão do arquivo corrigido diz "Baixar arquivo"', $('#btn-gen-corrected-base').textContent.trim() === 'Baixar arquivo');
+
+  const pendingWarning = $('#step5-pending-warning');
+  log('Aviso de pendências aparece no topo do Passo 5', pendingWarning !== null, pendingWarning && pendingWarning.textContent.slice(0, 80));
+  log('Aviso de pendências tem botão de atalho para o Passo 3 ou 4',
+    pendingWarning.querySelector('.jump-btn') !== null);
 
   const lockedPill = doc.querySelector('#email-tags .tag-pill.is-locked');
   log('Pill fixo do e-mail aparece com o endereco certo', lockedPill && lockedPill.textContent.includes('Scannmarket-br@scanntech.com'));

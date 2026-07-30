@@ -28,6 +28,7 @@ const Report = (function () {
       ['Status cliente', p.status || '-'],
       ['Versao SM', p.versao || '-'],
       ['FTP', p.ftp || '-'],
+      ['Fenix', p.fenix || '-'],
       ['Regiao / UF', (p.regiaoUf || []).join(', ') || '-'],
       ['Opcao', p.opcao || '-'],
       ['Devera ser preenchido', p.deveraPreencher || '-'],
@@ -204,7 +205,14 @@ const Report = (function () {
   function buildMailto(state, to) {
     const p = state.params;
     const v = state.validationResults;
-    const subject = 'Prod - ' + (p.categoria || 'sem categoria') + (p.cliente ? ' - ' + p.cliente : '');
+    const subjectParts = [
+      'SOLICITAÇÃO DE PROD',
+      p.cliente || 'CLIENTE NÃO INFORMADO',
+      p.categoria || 'CATEGORIA NÃO INFORMADA',
+      p.versao || '-'
+    ];
+    const subject = subjectParts.join(' – ').toUpperCase();
+
     const bodyLines = [
       'Ola,',
       '',
@@ -215,13 +223,16 @@ const Report = (function () {
       'BU: ' + (p.bu || '-'),
       'Status: ' + (p.status || '-'),
       'Versao SM: ' + (p.versao || '-'),
-      'Opcao: ' + (p.opcao || '-'),
+      'Opcao: ' + (p.opcao || '-') + (p.opcaoDescricao ? ' (' + p.opcaoDescricao + ')' : ''),
       'FTP: ' + (p.ftp || '-'),
+      'Fenix: ' + (p.fenix || '-'),
       'Regiao/UF: ' + ((p.regiaoUf || []).join(', ') || '-'),
       '',
       'Achados na validacao automatica: ' + (v ? v.totalAchados : 0),
       '',
-      'IMPORTANTE: anexe manualmente o PDF que voce acabou de baixar antes de enviar.',
+      'IMPORTANTE:',
+      '- Se algo foi corrigido no Passo 3, anexe tambem o arquivo de prods corrigidas antes de enviar.',
+      '- Anexe manualmente o PDF que voce acabou de baixar - o navegador nao anexa isso automaticamente.',
       '',
       'Obrigado!'
     ];

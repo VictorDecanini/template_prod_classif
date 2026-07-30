@@ -925,7 +925,7 @@
     section.className = 'corrected-base-section';
     section.id = 'corrected-base-card';
     section.innerHTML = '<div class="corrected-base-info"><i class="ti ti-file-check"></i><div>' +
-      '<strong>Base congelada corrigida</strong>' +
+      '<strong>Base corrigida para subir prods no classificaciones</strong>' +
       '<span id="corrected-base-desc">Mesma estrutura do arquivo que você subiu, com os nomes corrigidos no Passo 3 já aplicados.</span>' +
       '</div></div>';
     const btn = document.createElement('button');

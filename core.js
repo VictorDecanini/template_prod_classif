@@ -259,7 +259,7 @@ const Core = (function () {
     caseVariants: 'Padronize a grafia (escolha uma única forma de escrever) e reclassifique os SKUs divergentes antes de subir ao Classificaciones.',
     whitespace: 'Remova os espaços extras direto na base de origem antes de repetir o processo — eles são invisíveis a olho nu, mas quebram comparações exatas.',
     nearDup: 'Confirme se são realmente a mesma Prod digitada de formas diferentes; se forem, unifique o nome na Etapa 3 (Importância) antes de seguir.',
-    lowRelevance: 'Confirme se essa Prod realmente precisa existir separadamente, ou considere agrupá-la em outra categoria já existente (ex.: "OUTROS") antes de seguir.'
+    lowRelevance: 'Isso é um aviso, não um erro — dá pra seguir sem corrigir. Se quiser, confirme se essa Prod realmente precisa existir separadamente, ou considere agrupá-la em outra categoria já existente (ex.: "OUTROS").'
   };
 
   return {

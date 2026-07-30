@@ -171,6 +171,32 @@ const Validations = (function () {
     return flagged;
   }
 
+  // Mesma logica acima, mas pesada pelos grupos confirmados na Etapa 3
+  // (usa g.final, nao o valor bruto do arquivo) - assim, se o usuario ja
+  // corrigiu "refrigerantes" para "Refrigerantes" no Nome Final, essa
+  // divergencia deixa de ser sinalizada, em vez de continuar presa ao
+  // valor original do arquivo.
+  function caseVariantsWeighted(groups) {
+    const map = new Map();
+    (groups || []).forEach(g => {
+      const exact = N(g.final);
+      if (exact === '') return;
+      const key = CI(exact);
+      if (!map.has(key)) map.set(key, new Map());
+      const variants = map.get(key);
+      variants.set(exact, (variants.get(exact) || 0) + (g.count || 0));
+    });
+    const flagged = [];
+    map.forEach((variants) => {
+      if (variants.size > 1) {
+        flagged.push({
+          variants: Array.from(variants.entries()).map(([value, count]) => ({ value, count }))
+        });
+      }
+    });
+    return flagged;
+  }
+
   // ---------- Espacos em branco (inicio/fim/duplo) ----------
   function whitespaceIssues(baseRows, fields) {
     const issues = [];
@@ -222,8 +248,8 @@ const Validations = (function () {
     results.lowRelevanceNivel1 = lowRelevanceGroups(importanciaNivel1);
     results.lowRelevanceNivel2 = importanciaNivel2 ? lowRelevanceGroups(importanciaNivel2) : [];
 
-    results.caseNivel1 = caseVariants(baseRows.map(r => r.nivel1));
-    results.caseNivel2 = importanciaNivel2 ? caseVariants(baseRows.map(r => r.nivel2)) : [];
+    results.caseNivel1 = caseVariantsWeighted(importanciaNivel1);
+    results.caseNivel2 = importanciaNivel2 ? caseVariantsWeighted(importanciaNivel2) : [];
 
     results.whitespace = whitespaceIssues(baseRows, importanciaNivel2
       ? ['nivel1', 'nivel2', 'categoriaCongelada', 'categoriaDataExcellence']
@@ -248,7 +274,6 @@ const Validations = (function () {
     totalAchados += results.eanCross.duplicatesInBase.length;
     totalAchados += results.categoria.trocaramCategoria.length;
     totalAchados += results.blankNivel1.length + results.blankNivel2.length;
-    totalAchados += results.lowRelevanceNivel1.length + results.lowRelevanceNivel2.length;
     totalAchados += results.caseNivel1.length + results.caseNivel2.length;
     totalAchados += results.whitespace.length;
     totalAchados += results.nearDupNivel1.length + results.nearDupNivel2.length;
@@ -263,7 +288,7 @@ const Validations = (function () {
     LIMIAR_OK, LIMIAR_ALERTA,
     computeGroupStats, attachPctAndStatus,
     diffAgainstClassif, eanCrossCheck, categoriaChecks, blankNivelRows, blankNivelRowsCombined,
-    caseVariants, whitespaceIssues, nearDuplicates,
+    caseVariants, caseVariantsWeighted, whitespaceIssues, nearDuplicates,
     compute
   };
 })();

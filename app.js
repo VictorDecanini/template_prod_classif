@@ -778,7 +778,7 @@
       v.classifNivel1 && {
         title: 'Nível 1 não refletido no report Classificaciones',
         desc: 'Um nome confirmado na Etapa 3 (Importância) para o Nível 1 não aparece em nenhuma linha do report Classificaciones — a classificação pedida pode não ter sido processada ainda pelo sistema.',
-        items: v.classifNivel1.naoRefletida, formatter: x => x, recommendation: Core.RECOMENDACOES.classifNaoRefletida
+        items: v.classifNivel1.naoRefletida, formatter: x => x, recommendation: Core.RECOMENDACOES.classifNaoRefletida, jumpTo: jump3_1
       },
       v.classifNivel1 && {
         title: 'Nível 1 incorreto no report Classificaciones',
@@ -788,7 +788,7 @@
       v.classifNivel2 && {
         title: 'Nível 2 não refletido no report Classificaciones',
         desc: 'Um nome confirmado na Etapa 3 (Importância) para o Nível 2 não aparece em nenhuma linha do report Classificaciones — a classificação pedida pode não ter sido processada ainda pelo sistema.',
-        items: v.classifNivel2.naoRefletida, formatter: x => x, recommendation: Core.RECOMENDACOES.classifNaoRefletida
+        items: v.classifNivel2.naoRefletida, formatter: x => x, recommendation: Core.RECOMENDACOES.classifNaoRefletida, jumpTo: jump3_2
       },
       v.classifNivel2 && {
         title: 'Nível 2 incorreto no report Classificaciones',
@@ -807,15 +807,15 @@
       },
       {
         title: 'Prods com baixa relevância (Revisar) — Nível 1',
-        desc: 'Grupos do Nível 1 com Importância abaixo de 4% — status "Revisar" na Etapa 3.',
+        desc: 'Aviso, não é erro: grupos do Nível 1 com Importância abaixo de 4% — status "Revisar" na Etapa 3. Não bloqueia o andamento; dá pra seguir sem corrigir isso.',
         items: v.lowRelevanceNivel1, formatter: g => '"' + g.nome + '"  —  ' + g.count + ' SKU(s)  —  ' + g.pct.toFixed(2).replace('.', ',') + '%',
-        recommendation: Core.RECOMENDACOES.lowRelevance, jumpTo: jump3_1
+        recommendation: Core.RECOMENDACOES.lowRelevance, jumpTo: jump3_1, severity: 'warning'
       },
       (state.importanciaNivel2 && state.importanciaNivel2.length) && {
         title: 'Prods com baixa relevância (Revisar) — Nível 2',
-        desc: 'Grupos do Nível 2 com Importância abaixo de 4% — status "Revisar" na Etapa 3.',
+        desc: 'Aviso, não é erro: grupos do Nível 2 com Importância abaixo de 4% — status "Revisar" na Etapa 3. Não bloqueia o andamento; dá pra seguir sem corrigir isso.',
         items: v.lowRelevanceNivel2, formatter: g => '"' + g.nome + '"  —  ' + g.count + ' SKU(s)  —  ' + g.pct.toFixed(2).replace('.', ',') + '%',
-        recommendation: Core.RECOMENDACOES.lowRelevance, jumpTo: jump3_2
+        recommendation: Core.RECOMENDACOES.lowRelevance, jumpTo: jump3_2, severity: 'warning'
       },
       {
         title: 'Divergência de maiúscula/minúscula — Nível 1',
@@ -1082,25 +1082,28 @@
       panelHead.parentNode.insertBefore(el, panelHead.nextSibling);
     }
     const v = state.validationResults;
+    const lowRelTotal = v ? (v.lowRelevanceNivel1.length + v.lowRelevanceNivel2.length) : 0;
+    const lowRelNote = lowRelTotal > 0
+      ? '<div style="margin-top:8px;font-weight:500;">Aviso à parte (não bloqueia): ' + lowRelTotal + ' Prod(s) com baixa relevância (Revisar) — pode seguir sem corrigir.</div>'
+      : '';
+
     if (!v || v.totalAchados === 0) {
-      el.className = 'callout';
-      el.innerHTML = '<i class="ti ti-check"></i> Nenhuma pendência da validação — pode seguir com o relatório.';
+      el.className = lowRelTotal > 0 ? 'callout callout-warning' : 'callout';
+      el.innerHTML = '<i class="ti ti-check"></i> <div>Nenhuma pendência bloqueante da validação — pode seguir com o relatório.' + lowRelNote + '</div>';
       return;
     }
     const blankTotal = v.blankNivel1.length + v.blankNivel2.length;
-    const lowRelTotal = v.lowRelevanceNivel1.length + v.lowRelevanceNivel2.length;
-    const restTotal = v.totalAchados - blankTotal - lowRelTotal;
+    const restTotal = v.totalAchados - blankTotal;
     const parts = [];
     if (blankTotal) parts.push(blankTotal + ' SKU(s) sem classificação');
-    if (lowRelTotal) parts.push(lowRelTotal + ' Prod(s) com baixa relevância (Revisar)');
     if (restTotal > 0) parts.push(restTotal + ' outro(s) ponto(s) de validação');
 
     el.className = 'callout callout-danger';
     let html = '<i class="ti ti-alert-triangle"></i><div><strong>' + v.totalAchados + ' pendência(s) ainda em aberto:</strong> ' +
       escapeHtml(parts.join(', ')) + '.';
-    if (blankTotal || lowRelTotal) html += '<button type="button" class="jump-btn" id="step5-jump-step3">Ir para o Passo 3 <i class="ti ti-arrow-right"></i></button>';
+    if (blankTotal) html += '<button type="button" class="jump-btn" id="step5-jump-step3">Ir para o Passo 3 <i class="ti ti-arrow-right"></i></button>';
     if (restTotal > 0) html += '<button type="button" class="jump-btn" id="step5-jump-step4">Ver detalhes no Passo 4 <i class="ti ti-arrow-right"></i></button>';
-    html += '</div>';
+    html += lowRelNote + '</div>';
     el.innerHTML = html;
     const b3 = document.getElementById('step5-jump-step3');
     if (b3) b3.addEventListener('click', () => goToStep(3));

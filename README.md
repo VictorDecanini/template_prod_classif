@@ -87,6 +87,20 @@ corrigir manualmente também, então a detecção errada nunca trava o uso.
 
 ## Changelog
 
+- **Refinamentos da checagem de baixa relevância**: agora é claramente um
+  aviso amarelo, não um erro — não conta mais no total de achados, e o texto
+  do card deixa explícito que dá pra seguir sem corrigir.
+- **Atalho para o Passo 3 também nos checks "não refletido"** (Nível 1 e 2),
+  além dos que já tinham (SKU sem classificação, baixa relevância).
+- **Correção de bug**: a divergência de maiúscula/minúscula ficava presa ao
+  valor bruto do arquivo mesmo depois do usuário corrigir o nome no Passo 3.
+  Agora a checagem usa o nome já confirmado, então some assim que a correção
+  é feita.
+- **PDF mais enxuto**: só lista os pontos que ainda precisam de atenção — os
+  checks aprovados não aparecem mais como "nenhum problema encontrado", só
+  contam para o resumo "X/Y checks aprovados" no topo.
+- Renomeado "PDF enxuto" para "Relatório PDF".
+
 - **Lote grande de ajustes de usabilidade**:
   - Passo 1: novo toggle "Precisa de Fênix?" ao lado do de FTP.
   - Passo 2: caixas de upload com cor de destaque por padrão (não só no hover).
@@ -190,6 +204,10 @@ DOM simulado (jsdom) com dados sintéticos:
   subseções numeradas e destaque de linha no Passo 3, resumo/ordenação/checks
   ocultos/atalho no Passo 4, e aviso de pendências + e-mail em nova aba no
   Passo 5.
+- `smoke10_refinements.js` — atalho nos checks "não refletido", baixa
+  relevância como aviso não-bloqueante e fora da contagem de achados,
+  correção de maiúscula/minúscula reagindo ao Nome Final da Etapa 3, e o
+  PDF enxuto (só problemas reais + contagem de aprovados).
 
 ```
 npm install

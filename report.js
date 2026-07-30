@@ -148,48 +148,45 @@ const Report = (function () {
       return s;
     }
     const skuLabel = d => [skuLabelStr(d)];
+
+    // Mesma ordem de prioridade usada no dashboard da ferramenta.
+    const checkDefs = [
+      v.classifNivel1 && { title: 'Nivel 1 nao refletido no report Classificaciones', items: v.classifNivel1.naoRefletida, formatter: s => [s], recommendation: Core.RECOMENDACOES.classifNaoRefletida },
+      v.classifNivel1 && { title: 'Nivel 1 incorreto no report Classificaciones', items: v.classifNivel1.incorreta, formatter: s => [s], recommendation: Core.RECOMENDACOES.classifIncorreta },
+      v.classifNivel2 && { title: 'Nivel 2 nao refletido no report Classificaciones', items: v.classifNivel2.naoRefletida, formatter: s => [s], recommendation: Core.RECOMENDACOES.classifNaoRefletida },
+      v.classifNivel2 && { title: 'Nivel 2 incorreto no report Classificaciones', items: v.classifNivel2.incorreta, formatter: s => [s], recommendation: Core.RECOMENDACOES.classifIncorreta },
+      { title: 'SKUs sem classificacao de Nivel 1 (em branco)', items: v.blankNivel1, formatter: skuLabel, recommendation: Core.RECOMENDACOES.blankNivel },
+      { title: 'SKUs sem classificacao de Nivel 2 (em branco)', items: v.blankNivel2, formatter: skuLabel, recommendation: Core.RECOMENDACOES.blankNivel },
+      { title: 'Prods com baixa relevancia (Revisar) - Nivel 1 [AVISO, nao bloqueia]', items: v.lowRelevanceNivel1, formatter: g => ['"' + g.nome + '" - ' + g.count + ' SKU(s) - ' + g.pct.toFixed(2).replace('.', ',') + '%'], recommendation: Core.RECOMENDACOES.lowRelevance },
+      { title: 'Prods com baixa relevancia (Revisar) - Nivel 2 [AVISO, nao bloqueia]', items: v.lowRelevanceNivel2, formatter: g => ['"' + g.nome + '" - ' + g.count + ' SKU(s) - ' + g.pct.toFixed(2).replace('.', ',') + '%'], recommendation: Core.RECOMENDACOES.lowRelevance },
+      { title: 'Divergencia de maiuscula/minuscula - Nivel 1', items: v.caseNivel1, formatter: g => [g.variants.map(x => x.value + ' (' + x.count + ')').join('  |  ')], recommendation: Core.RECOMENDACOES.caseVariants },
+      { title: 'Divergencia de maiuscula/minuscula - Nivel 2', items: v.caseNivel2, formatter: g => [g.variants.map(x => x.value + ' (' + x.count + ')').join('  |  ')], recommendation: Core.RECOMENDACOES.caseVariants },
+      { title: 'Possiveis erros de digitacao - Nivel 1 (nomes parecidos)', items: v.nearDupNivel1, formatter: p => ['"' + p.a + '"  vs  "' + p.b + '"  (distancia ' + p.dist + ')'], recommendation: Core.RECOMENDACOES.nearDup },
+      { title: 'Possiveis erros de digitacao - Nivel 2 (nomes parecidos)', items: v.nearDupNivel2, formatter: p => ['"' + p.a + '"  vs  "' + p.b + '"  (distancia ' + p.dist + ')'], recommendation: Core.RECOMENDACOES.nearDup },
+      { title: 'Espacos em branco indevidos', items: v.whitespace, formatter: w => [w.ean + '  [' + w.campo + ']  ' + w.valor], recommendation: Core.RECOMENDACOES.whitespace },
+      { title: 'SKUs na base congelada, nao encontrados no classificaciones [AVISO]', items: v.eanCross.onlyInBase, formatter: skuLabel, recommendation: Core.RECOMENDACOES.onlyInBase },
+      { title: 'SKUs no classificaciones, nao encontrados na base congelada [AVISO]', items: v.eanCross.onlyInClassif, formatter: d => [d.codigoBarras + (d.descricao ? '  —  ' + d.descricao : '')], recommendation: Core.RECOMENDACOES.onlyInClassif },
+      { title: 'EAN duplicado dentro da base congelada', items: v.eanCross.duplicatesInBase, formatter: d => [skuLabelStr(d) + '  (' + d.count + ' linhas)'], recommendation: Core.RECOMENDACOES.duplicatesInBase },
+      { title: 'Possivel divergencia de formato de EAN (zero a esquerda)', items: v.eanCross.formatMismatches, formatter: d => ['Base congelada: ' + d.base + '   |   Classificaciones: ' + d.classificaciones], recommendation: Core.RECOMENDACOES.eanFormat },
+      { title: 'SKUs que trocaram de categoria (congelada vs Data Excellence)', items: v.categoria.trocaramCategoria, formatter: d => [skuLabelStr(d) + ':  ' + d.de + '  ->  ' + d.para], recommendation: Core.RECOMENDACOES.trocaramCategoria }
+    ].filter(Boolean);
+
+    const totalChecks = checkDefs.length;
+    const approved = checkDefs.filter(c => c.items.length === 0).length;
+
     ensureSpace(30);
     doc.setFontSize(12);
-    doc.text('Resumo de validacao (' + v.totalAchados + ' achados no total)', marginX, y);
+    doc.text('Resumo de validacao: ' + approved + '/' + totalChecks + ' checks aprovados', marginX, y);
+    y += 10;
+    doc.setFontSize(9);
+    doc.setTextColor(...GRAY);
+    doc.text('Abaixo, so os pontos que ainda precisam de atencao (checks aprovados nao sao listados).', marginX, y);
+    doc.setTextColor(...INK);
     y += 20;
 
-    addListSection('SKUs na base congelada, nao encontrados no classificaciones', v.eanCross.onlyInBase,
-      null, skuLabel, Core.RECOMENDACOES.onlyInBase);
-    addListSection('SKUs no classificaciones, nao encontrados na base congelada', v.eanCross.onlyInClassif,
-      null, d => [d.codigoBarras + (d.descricao ? '  —  ' + d.descricao : '')], Core.RECOMENDACOES.onlyInClassif);
-    addListSection('EAN duplicado dentro da base congelada', v.eanCross.duplicatesInBase,
-      null, d => [skuLabelStr(d) + '  (' + d.count + ' linhas)'], Core.RECOMENDACOES.duplicatesInBase);
-    addListSection('Possivel divergencia de formato de EAN (zero a esquerda)', v.eanCross.formatMismatches,
-      null, d => ['Base congelada: ' + d.base + '   |   Classificaciones: ' + d.classificaciones], Core.RECOMENDACOES.eanFormat);
-    addListSection('SKUs sem classificacao de Nivel 1 (em branco)', v.blankNivel1,
-      null, skuLabel, Core.RECOMENDACOES.blankNivel);
-    addListSection('SKUs sem classificacao de Nivel 2 (em branco)', v.blankNivel2,
-      null, skuLabel, Core.RECOMENDACOES.blankNivel);
-    addListSection('SKUs que trocaram de categoria (congelada vs Data Excellence)', v.categoria.trocaramCategoria,
-      null, d => [skuLabelStr(d) + ':  ' + d.de + '  ->  ' + d.para], Core.RECOMENDACOES.trocaramCategoria);
-    addListSection('Divergencia de maiuscula/minuscula - Nivel 1', v.caseNivel1,
-      null, g => [g.variants.map(x => x.value + ' (' + x.count + ')').join('  |  ')], Core.RECOMENDACOES.caseVariants);
-    addListSection('Divergencia de maiuscula/minuscula - Nivel 2', v.caseNivel2,
-      null, g => [g.variants.map(x => x.value + ' (' + x.count + ')').join('  |  ')], Core.RECOMENDACOES.caseVariants);
-    addListSection('Espacos em branco indevidos', v.whitespace,
-      null, w => [w.ean + '  [' + w.campo + ']  ' + w.valor], Core.RECOMENDACOES.whitespace);
-    addListSection('Possiveis erros de digitacao - Nivel 1 (nomes parecidos)', v.nearDupNivel1,
-      null, p => ['"' + p.a + '"  vs  "' + p.b + '"  (distancia ' + p.dist + ')'], Core.RECOMENDACOES.nearDup);
-    addListSection('Possiveis erros de digitacao - Nivel 2 (nomes parecidos)', v.nearDupNivel2,
-      null, p => ['"' + p.a + '"  vs  "' + p.b + '"  (distancia ' + p.dist + ')'], Core.RECOMENDACOES.nearDup);
-
-    if (v.classifNivel1) {
-      addListSection('Nivel 1 nao refletido no report Classificaciones', v.classifNivel1.naoRefletida,
-        null, s => [s], Core.RECOMENDACOES.classifNaoRefletida);
-      addListSection('Nivel 1 incorreto no report Classificaciones (nao esperado)', v.classifNivel1.incorreta,
-        null, s => [s], Core.RECOMENDACOES.classifIncorreta);
-    }
-    if (v.classifNivel2) {
-      addListSection('Nivel 2 nao refletido no report Classificaciones', v.classifNivel2.naoRefletida,
-        null, s => [s], Core.RECOMENDACOES.classifNaoRefletida);
-      addListSection('Nivel 2 incorreto no report Classificaciones (nao esperado)', v.classifNivel2.incorreta,
-        null, s => [s], Core.RECOMENDACOES.classifIncorreta);
-    }
+    checkDefs.filter(c => c.items.length > 0).forEach(c => {
+      addListSection(c.title, c.items, null, c.formatter, c.recommendation);
+    });
 
     ensureSpace(20);
     doc.setFontSize(9);

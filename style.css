@@ -115,11 +115,11 @@ h1, h2, h3 { font-weight: 600; margin: 0; }
   font-size: 14px;
   font-weight: 500;
   margin: 10px 0 0;
-  max-width: 760px;
   background: var(--st-blue-light);
   border-left: 4px solid var(--st-blue);
   border-radius: 8px;
   padding: 10px 14px;
+  box-sizing: border-box;
 }
 
 .grid-2 {

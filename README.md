@@ -87,6 +87,17 @@ corrigir manualmente também, então a detecção errada nunca trava o uso.
 
 ## Changelog
 
+- **Marca de versão no rodapé** (`build AAAA-MM-DD.N`) — ajuda a confirmar se o
+  navegador está mesmo carregando a versão mais recente dos arquivos, e não
+  uma cópia em cache.
+- **Re-verificação da correção em cadeia** (branco → digitação errada →
+  renomeado → renomeado de novo): testei o cenário com múltiplos itens em
+  branco corrigidos individualmente e depois consolidados por Nome Final —
+  o arquivo exportado usa a versão mais recente em todos os casos. Se depois
+  de atualizar todos os arquivos e limpar o cache o problema persistir, é
+  sinal de que há alguma diferença no cenário real que vale a pena investigar
+  com mais detalhe.
+
 - **Correção de bug importante no arquivo exportado**: quando um item em
   branco era classificado (Passo 3.0) e, na sequência, o grupo criado por
   essa classificação era renomeado de novo (ex.: corrigir um typo criado na
